@@ -216,8 +216,8 @@ function draw() {
 
     // Step 13a: Bloom animation — scale up slightly when solved
     if (puzzleSolved) {
-      let scale = 1 + sin(celebrationFrame * 0.05) * 0.1;
-      scale(scale);
+      let scaleFactor = 1 + sin(celebrationFrame * 0.05) * 0.1;
+      scale(scaleFactor);
     }
 
     image(shapeFragments[i], -shapeFragments[i].width / 2, -shapeFragments[i].height / 2);
