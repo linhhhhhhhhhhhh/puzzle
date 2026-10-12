@@ -19,9 +19,10 @@ let shapeCurrentAngles = [];
 let shapeLocked = [];
 let selectedShape = -1; // index of currently selected shape, -1 = none
 let prevMouseX = 0;
+let lockAnimFrames = 0; // frames remaining for lock snap animation
 
 const NUM_SHAPES = 4;
-const LOCK_TOLERANCE = 12; // degrees
+const LOCK_TOLERANCE = 6; // degrees
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
@@ -49,28 +50,28 @@ function drawFlower() {
 
   let cx = flowerBuffer.width / 2;
   let cy = flowerBuffer.height / 2;
-  let flowerR = min(flowerBuffer.width, flowerBuffer.height) * 0.38;
+  let maxR = min(flowerBuffer.width, flowerBuffer.height) * 0.42;
 
-  // Stem
-  flowerBuffer.fill(60, 160, 80);
-  flowerBuffer.rect(cx - flowerR * 0.06, cy + flowerR * 0.5, flowerR * 0.12, flowerR * 0.8);
+  // Concentric circle rings (bullseye target pattern)
+  let colors = [
+    [220, 60, 60],    // red
+    [255, 255, 255],  // white
+    [60, 120, 200],   // blue
+    [255, 255, 255],  // white
+    [240, 180, 40],   // yellow
+    [255, 255, 255],  // white
+    [80, 180, 80],    // green
+  ];
 
-  // Petals
-  flowerBuffer.fill(255, 120, 150);
-  for (let i = 0; i < 8; i++) {
-    let a = i * 45;
-    let px = cx + cos(a) * flowerR * 0.75;
-    let py = cy + sin(a) * flowerR * 0.75;
-    flowerBuffer.push();
-    flowerBuffer.translate(px, py);
-    flowerBuffer.rotate(a + 90);
-    flowerBuffer.ellipse(0, 0, flowerR * 0.35, flowerR * 0.6);
-    flowerBuffer.pop();
+  for (let i = 0; i < colors.length; i++) {
+    let r = maxR * (1 - i / colors.length);
+    flowerBuffer.fill(colors[i][0], colors[i][1], colors[i][2]);
+    flowerBuffer.circle(cx, cy, r * 2);
   }
 
-  // Center
-  flowerBuffer.fill(255, 210, 60);
-  flowerBuffer.circle(cx, cy, flowerR * 0.5);
+  // Center dot
+  flowerBuffer.fill(220, 60, 60);
+  flowerBuffer.circle(cx, cy, maxR * 0.15);
 
   flowerBuffer.pop();
 }
@@ -80,7 +81,7 @@ function drawFlower() {
 function initShapes() {
   let cx = width / 2;
   let cy = height / 2;
-  let radius = min(width, height) * 0.32;
+  let radius = min(width, height) * 0.22;
   let shapeSize = min(width, height) * 0.18;
 
   // 4 shapes at 12, 3, 6, 9 o'clock
@@ -90,7 +91,7 @@ function initShapes() {
     let py = cy + sin(angle) * radius;
 
     shapePositions.push({ x: px, y: py });
-    shapeTargetAngles.push(angle); // correct orientation faces outward
+    shapeTargetAngles.push(0); // all shapes align at 0 degrees for the bullseye
     shapeStartAngles.push(random(0, 360));
     shapeCurrentAngles.push(shapeStartAngles[i]);
     shapeLocked.push(false);
@@ -172,6 +173,21 @@ function draw() {
       rotationDelta = 0;
     }
     shapeCurrentAngles[selectedShape] += rotationDelta;
+
+    // Step 9: Check if selected shape is within tolerance of target angle
+    let currentAngle = shapeCurrentAngles[selectedShape];
+    let targetAngle = shapeTargetAngles[selectedShape];
+    let angleDiff = abs(currentAngle - targetAngle);
+    // Handle 0/360 wrap-around
+    if (angleDiff > 180) angleDiff = 360 - angleDiff;
+    if (angleDiff <= LOCK_TOLERANCE) {
+      // Lock the shape!
+      shapeLocked[selectedShape] = true;
+      shapeCurrentAngles[selectedShape] = targetAngle;
+      selectedShape = -1;
+      lockAnimFrames = 15; // frames for snap animation
+      playLockSound();
+    }
   }
 
   // Draw shape fragments
@@ -258,4 +274,15 @@ async function requestWakeLock() {
 
 function userSetupComplete() {
   console.log('Permissions ready');
+}
+
+// ── Step 10: Play a lock sound effect ──────────────────────────
+
+function playLockSound() {
+  if (!window.soundEnabled) return;
+  let osc = new p5.Oscillator('sine');
+  osc.freq(880);
+  osc.amp(0.3);
+  osc.start();
+  osc.stop(0.15);
 }

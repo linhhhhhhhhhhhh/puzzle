@@ -88,4 +88,4 @@ Describe the frame-by-frame `draw()` order: (1) draw background, (2) draw all 4 
 Test the full flow on a laptop with mouse controls. Then test on a phone: tap to enable motion, twist to rotate shapes, lock all 4, see the bloom animation. Adjust angles, timing, and sensitivity as needed.
 
 ## Changes
-<!-- One line each time you change this plan, and why. -->
+- Replaced flower image with concentric circle bullseye pattern — each ring crosses all 4 shapes, giving every fragment clear visual detail and a satisfying alignment "click".
