@@ -247,15 +247,6 @@ function draw() {
     pop();
   }
 
-  // Step 13a: Fade in full bullseye on top during celebration
-  if (puzzleSolved && celebrationFrame > 30) {
-    let alpha = min(255, (celebrationFrame - 30) * 8);
-    push();
-    tint(255, alpha);
-    image(flowerBuffer, 0, 0);
-    pop();
-  }
-
   // Step 13b: Display "Well Done!" text
   if (puzzleSolved && celebrationFrame > 60) {
     fill(255, 215, 0);
