@@ -19,6 +19,7 @@ let shapeCurrentAngles = [];
 let shapeLocked = [];
 let selectedShape = -1; // index of currently selected shape, -1 = none
 let prevMouseX = 0;
+let prevRotationZ = 0;
 let lockAnimFrames = 0; // frames remaining for lock snap animation
 
 const NUM_SHAPES = 4;
@@ -162,13 +163,13 @@ function draw() {
       rotationDelta = mouseX - prevMouseX;
       prevMouseX = mouseX;
     } else if (window.sensorsEnabled) {
-      // Phone: use rotationZ delta (handle 0/360 wrap)
+      // Phone: use rotationZ delta from previous frame (handle 0/360 wrap)
       let currentZ = rotationZ;
-      let prevZ = shapeCurrentAngles[selectedShape];
-      rotationDelta = currentZ - prevZ;
+      rotationDelta = currentZ - prevRotationZ;
       // Handle wrap-around
       if (rotationDelta > 180) rotationDelta -= 360;
       if (rotationDelta < -180) rotationDelta += 360;
+      prevRotationZ = currentZ;
     } else {
       rotationDelta = 0;
     }
