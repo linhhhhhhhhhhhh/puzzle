@@ -21,6 +21,8 @@ let selectedShape = -1; // index of currently selected shape, -1 = none
 let prevMouseX = 0;
 let prevRotationZ = 0;
 let lockAnimFrames = 0; // frames remaining for lock snap animation
+let puzzleSolved = false;
+let celebrationFrame = 0;
 
 const NUM_SHAPES = 4;
 const LOCK_TOLERANCE = 6; // degrees
@@ -188,7 +190,18 @@ function draw() {
       selectedShape = -1;
       lockAnimFrames = 15; // frames for snap animation
       playLockSound();
+
+      // Step 12: Check for win condition
+      if (shapeLocked.every(l => l)) {
+        puzzleSolved = true;
+        celebrationFrame = 0;
+      }
     }
+  }
+
+  // Step 12: Check for win condition
+  if (puzzleSolved) {
+    celebrationFrame++;
   }
 
   // Draw shape fragments
@@ -200,6 +213,13 @@ function draw() {
     } else {
       rotate(shapeCurrentAngles[i]);
     }
+
+    // Step 13a: Bloom animation — scale up slightly when solved
+    if (puzzleSolved) {
+      let scale = 1 + sin(celebrationFrame * 0.05) * 0.1;
+      scale(scale);
+    }
+
     image(shapeFragments[i], -shapeFragments[i].width / 2, -shapeFragments[i].height / 2);
 
     // Draw pulsing border on selected shape
@@ -225,6 +245,24 @@ function draw() {
       }
     }
     pop();
+  }
+
+  // Step 13a: Fade in full bullseye on top during celebration
+  if (puzzleSolved && celebrationFrame > 30) {
+    let alpha = min(255, (celebrationFrame - 30) * 8);
+    push();
+    tint(255, alpha);
+    image(flowerBuffer, 0, 0);
+    pop();
+  }
+
+  // Step 13b: Display "Well Done!" text
+  if (puzzleSolved && celebrationFrame > 60) {
+    fill(255, 215, 0);
+    textAlign(CENTER, CENTER);
+    textSize(min(width, height) * 0.08);
+    textStyle(BOLD);
+    text('Well Done!', width / 2, height / 2);
   }
 
   if (!window.sensorsEnabled) {
